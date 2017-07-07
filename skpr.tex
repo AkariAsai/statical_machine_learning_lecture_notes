@@ -494,17 +494,21 @@ $$\log{\pi_k} + \log{1} - \log{\sqrt{2\pi}\sigma} + \left(-\frac{1}{2\sigma^2}(s
 $$\log{\pi_k} + x \frac{\mu_k}{\sigma^2} - \frac{\mu_k^2}{2\sigma^2} = \delta_k(x)$$
 
 として、この$\delta_k(x)$を最大にするクラス$k$に事例$x$を分類すると考えることができます。
-すなわちK個のクラスに対して$\mu_k及び\sigma_k^2$がわかれば分離境界$x$を求めることができます。\
-実際には$\mu_k及び\sigma_k^2$は未知なので、以下のようにデータから推定します。
+すなわちK個のクラスに対して$\mu_k及び\sigma_k^2$がわかれば分離境界$x$を求めることができます。\\
+例えば$K=2, \pi_1=\pi_2, \sigma_1 = \sigma_2 = \sigma$の場合を考えると、分離境界において$\sigma_1(x) = \sigma_2(x)$が成立するため、
+$$x\frac{\pi_1}{\sigma^2} - \frac{\mu_1^2}{2\sigma^2} + \log{\pi_1} = x\frac{\pi_1}{\sigma^2} - \frac{\mu_2^2}{2\sigma^2} + \log{\pi_2}$$
+$$x = \frac{\mu_1 + \mu_2}{2}$$
+実際には$\mu_k及び\sigma_k^2$は未知なので、以下のようにデータから推定し判別関数を求めます。
 \begin{itembox}[l]{$\hat{\mu}_k及び\hat{\sigma}_k^2$の推定による線形判別分析法による分類}
   $n$を学習データの全事例、$n_k$を クラス$k$に属する事例の数とすると、
   $$\hat{\mu}_k = \frac{1}{n_k}\sum_{i:y_i =k}^k x_i,\ \hat{\sigma}_k^2 = \frac{1}{n−K}\sum_{k=1}^K\sum_{i:y_i=k}(x_i - \hat{\mu}_k)^2$$
   また$\pi_k$も未知である場合は以下のようにデータから推定できる。
   $$\hat{pi}_k = \frac{n_k}{n}$$
   線形判別分析ではこれらの推定値を用いて、以下の判別関数$\hat{\sigma}_k$が最も大きくなるクラスに分類する。
-  $$\hat{\sigma}_k = x\frac{\hat{\mu_k}}{\hat{\sigma}_k^2} - \frac{\hat{\mu_k}^2}{2\hat{\sigma}_k^2} + log(\hat{\pi}_k)$$
+  $$\hat{\sigma}_k = x\frac{\hat{\mu_k}}{\hat{\sigma}_k^2} - \frac{\hat{\mu_k}^2}{2\hat{\sigma}_k^2} + \log(\hat{\pi}_k)$$
 \end{itembox}
 
+予測変数が2以上の場合は密度関数が異なるので判別関数が異なるのですが基本的な求め方が前述の方法と同じなのと、あの式を入力するのがめんどくさいのでスライドで確認していただけると嬉しいです。
 \section{リサンプリング法(第9講)}
 リサンプリング法とは、手持ちの限られたデータをある固定された割合で分割し、訓練データとテストデータに分けて学習するのではなく、\
 ランダムサンプリングと学習によるパラメータ推定を複数回行い、データの分割の仕方による予測モデルのばらつきなどを少なくすることを目指しています。\
