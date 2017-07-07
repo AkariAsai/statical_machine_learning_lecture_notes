@@ -507,8 +507,74 @@ $$x = \frac{\mu_1 + \mu_2}{2}$$
   線形判別分析ではこれらの推定値を用いて、以下の判別関数$\hat{\sigma}_k$が最も大きくなるクラスに分類する。
   $$\hat{\sigma}_k = x\frac{\hat{\mu_k}}{\hat{\sigma}_k^2} - \frac{\hat{\mu_k}^2}{2\hat{\sigma}_k^2} + \log(\hat{\pi}_k)$$
 \end{itembox}
-
 予測変数が2以上の場合は密度関数が異なるので判別関数が異なるのですが基本的な求め方が前述の方法と同じなのと、あの式を入力するのがめんどくさいのでスライドで確認していただけると嬉しいです。
+
+\subsection{正解率以外の評価指標}
+分類問題においては、単なる正解率(accuracy)以外にもいくつか評価指標があり、クラスによりデータの数が大きく異なる時$\footnote{例えば婚活アプリのチャットのログからどういったやりとりをしている二人が実際に付き合っているのかを予測したい時、全体の中で実際にカップル成立したログのデータが10$\%$以下しかなかったとすると、\
+「全ての組み合わせが結局付き合うに至らなかった」と予測するようなでたらめなモデルでも正解率を見ると9割以上になってしまいます。しかしここで知りたいのはデータの中で少数派の「どういったやりとりをした二人が実際に付き合ったのか」であり、\
+この少数派をきちんと予測できるモデルを評価できる指標を用いる必要があります。}$問題によってはこれらの評価指標がモデルの評価基準として適していることがあります。授業で紹介されていたのはsensitivityとspecificity及びROC曲線でありこれらの評価指標は主に二値分類で用いられます。\
+\subsubsection{感度(sensitivity)と特異度(specificity)}
+それぞれ、実際のラベルがYesであるもの、Noであるものに対して正しく予測ができているのかを測る指標です。\
+図8のようにデータを実際のラベルと予測結果で分割したものを混同行列(confusion matrix)といいます。
+\begin{figure}
+  \begin{center}
+    \includegraphics[width=13cm]{img/sens.png}
+    \caption{混同行列}
+  \end{center}
+\end{figure}
+\begin{itembox}[l]{sensitivityとspecificity}
+  \begin{description}
+    \item [感度(sensitivity)]\mbox{}\\
+    実際のラベルが「Yes」であるものに対してきちんとモデルが「Yes」と予測できているかどうか。(Yesであるものを正しく検出できた割合)
+    $${\rm sensitivity = \frac{TP}{TP + FN}}$$
+    \item [特異度(specificity)]\mbox{}\\
+    実際のラベルが「No」であるものに対してきちんとモデルが「No」と予測できているかどうか。(Noであるものを正しく検出できた割合)
+    $${\rm sensitivity = \frac{TN}{TN + FP}}$$
+  \end{description}
+\end{itembox}
+混同行列のそれぞれのブロックに対応したカテゴリ名がややわかりにくいかもしれませんが、「予測結果=実際の分類」であればTrueが頭につき、「予測結果がYes」であればPositiveが次に、「予測結果がNo」であればNegativeが後につきます。\
+つまり「本来のラベルはNoだがYesだと予測されてしまった」ケースについては、実際のラベルと予測が異なるので頭に「False」が予測結果がYesなので後ろにPositiveがつき「False Positive(偽陰性)」になります$\footnote{個人的に忘れにくい覚え方は「結婚相手を探す時にFalse Positive」だけは引っかかってはいけない」\
+（本来ならうまくいくはずのない相手と誤って結婚してしまい、そういう結果になること）です。}$。
+実際に感度、特異度を求めたい場合はここにそれぞれの値を代入するだけでいいです。
+特に「Yes」が全体の中で閉める割合の低いデータについてはモデルにより「Yes」が想起される確率が低くなります。\
+これをそのまま放置すると「全てをNoで分類するモデル」になりかねないので、あえて閾値0.5ではなく0.2等に下げることで本来の二値分類では「No」に分類されていた事例も「Yes」に分類されやすくなり感度を高くすることができます。\
+ただこの場合当然ですがエラー率は上がってしまうため、目的に応じてこういった指標を使い分ける必要があります。
+sensitivity、specificity以外に図9のようにもいくつか指標はありますが、授業で詳しくは触れていないので特に大丈夫だと思います。
+% \begin{figure}
+%   \begin{center}
+%     \includegraphics[width=13cm]{img/sihyo.png}
+%     \caption{混同行列}
+%   \end{center}
+% \end{figure}
+\begin{figure}[htbp]
+\begin{minipage}{0.5\hsize}
+ \begin{center}
+  \includegraphics[width=70mm]{img/sihyo.png}
+ \end{center}
+ \caption{様々な評価指標}
+ \label{fig:one}
+\end{minipage}
+\begin{minipage}{0.5\hsize}
+ \begin{center}
+  \includegraphics[width=70mm]{img/ROC.png}
+ \end{center}
+ \caption{ROC曲線}
+ \label{fig:two}
+\end{minipage}
+\end{figure}
+\subsubsection{ROC曲線(receiveroperatingcharacteristicscurve)}
+上のように特にデータの中で偏りがある場合などに閾値をあえて0.5ではなくそれ以下もしくは以上にすることにより目的とする結果をえられるモデルを作りたい時があります。\
+これも交差検証で適切な閾値の結果を探す必要があるのですが、その場合はこれまでのように正解率ではなくAUC(Area Under the Curve)という指標を用います。\
+まず、False Positive Rate(= 1 - Specificity)とTrue Positive Rate(= Sensitivity)をそれぞれ$xy$平面にプロットします。この結果えられた曲線をROC曲線といい、\
+このROC曲線の下の部分の面積をAUCといいます。このAUC値が1に近いほど判別能が高いことを示しています。図10からもわかるようにROC曲線の下の面積が大きいものほど優れたモデルになります。
+% \begin{figure}
+%   \begin{center}
+%     \includegraphics[width=13cm]{img/ROC.png}
+%     \caption{混同行列}
+%   \end{center}
+% \end{figure}
+閾値を変えて予測を行った際にAUCが最もよくなる閾値を選択します。
+
 \section{リサンプリング法(第9講)}
 リサンプリング法とは、手持ちの限られたデータをある固定された割合で分割し、訓練データとテストデータに分けて学習するのではなく、\
 ランダムサンプリングと学習によるパラメータ推定を複数回行い、データの分割の仕方による予測モデルのばらつきなどを少なくすることを目指しています。\
