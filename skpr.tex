@@ -16,7 +16,16 @@
 \section{はじめに}
 2017年度春学期より開講の鶴岡先生による「統計的機械学習」のシケプリです。基本的には授業スライドのまとめ、\
 省略されている用語の解説や勾配計算、口頭で説明された内容をまとめています。数式についてはできるだけチェックしていますが、\
-もしミスなどあれば教えていただけると嬉しいです。途中で「参考資料に」と書いてある部分は最後のついていますが、授業中でも（参考）とつけれていたところが多いので、おそらくカバーしなくても大丈夫なはず…\
+もしミスなどあれば教えていただけると嬉しいです。途中で「参考資料に」とか書いてある部分は主にスライドで省略された式変形とかカバーしようとしたのですが今週の試験で体力を持って行かれたのでやりかけです…そのうちひっそり更新するかもしれません…\
+ただ、授業中でも（参考）とつけれていたところが多いので、おそらくカバーしなくても大丈夫なはず…\
+
+\section{抑えた方が良さそうなこと}
+今年開講の講義なので何が出るのかはよくわかりません…おそらく基本的なモデルや語句などを抑えておけば単位はくると思います。学習の際におそらくみておいて方がいいことは、
+\begin{itemize}
+  \item あるモデルについてパラメータ(SVMにおけるC等)を変化させた時のバイアスバリアンスの変化。
+  \item 類似したモデルや手法の比較、どのようなデータに対してどのモデルを使うべきか。（あれば）モデルの長所、短所は何か。
+  \item 授業中で手計算のやり方を確認したもの(線形回帰のパラメータ推定、ロジスティック回帰の予測率の計算、リッジ、Lasso回帰のパラメータ推定)
+\end{itemize}
 
 \section{統計的機械学習の基本}
 \subsection{教師あり学習と教師なし学習(第一講)}
@@ -111,7 +120,7 @@ $xとyの間に存在する関数f$を推定する目的としては、予測及
   Yが容易に得られない場合に、XからYを予測し推定する。\
   例えば患者に初めての薬を処方する際、その患者が服用して副作用が起こる可能性があるかどうか事前に予測する必要がる。ここで過去の副作用発生事例から\
   副作用を起こした患者、起こしていない患者の年齢、持病、性別等のデータXより、この新しい患者がある薬に対して重篤な副作用が起きるリスクいう出力$Y$を事前に推定することができる。
-  このように予測が目的です時は推定結果が正確である限り、$\hat{f}$はブラックボックス化して構わない。
+  このように予測が目的である時は推定結果が正確である限り、$\hat{f}$はブラックボックス化して構わない。予測誤差には削減可能なものと削減不可能なものがあり、これについては参考資料で補足します。
   \item[目的2 : 推論(inference)]\mbox{}\\
   $X_1,\ X_2,\dots,X_p$が変化した時にYがどのように変わるかを知りたいときに推論を行う。これはどの入力変数がYに関係しているかを知り活用することを目指している。\
   例えばAdvertisingデータセットにおける学習では、知りたいのは「何らかのシステマティックな関係により売り上げがいくつかになる」\
@@ -209,18 +218,18 @@ $${\rm Ave}(I(y_i \neq \hat{y}_i)^2)$$
 一方線形回帰などの表現力のあまり高くないシンプルなモデルは、このようなオーバーフィットをしにくく、バリアンスは小さくなる傾向にあるが、学習データに対してフィットしきれずバイアスが大きくなります。
 このようにバイアスとバリアンスの間にあるトレードオフの関係をThe bias-variance trade-offと言います。
 \begin{itembox}[l]{The bias-variance trade-off}
-  テストMSEは以下の3つの項の和に分解でき、バイアスとバリアンスにはトレードオフの関係にあることが確認できる。（この導出については参考資料に）
-  \begin{itemize}
-    \item $\hat{f}(x_0)$のバリアンス（分散）
-    \item $\hat{f}(x_0)$のバイアスの二乗
-    \item $\varepsilon$の分散
-  \end{itemize}
+  テストMSEは以下の3つの項の和に分解でき、バイアスとバリアンスにはトレードオフ(バイアスが小さい時はバイアスが大きくなり、バリアンスが小さい時はバリアンスが大きくなる)の関係にあることが確認できる。
   $${\rm Test MSE} = E[(y_0 - \hat{f}(x_0))^2] = {\rm Var}(\hat{f}(x_0)) + [{\rm Bias (\hat{f}(x_0))}]^2 + {\rm Var}(\varepsilon)$$
+  \begin{itemize}
+    \item  ${\rm Var}(\hat{f}(x_0))$ : $\hat{f}(x_0)$のバリアンス(分散)${\rm Var}(\hat{f}(x_0)) = E[\hat{f}(x_0)^2] - E[\hat{f}(x_0)]^2$
+    \item $[{\rm Bias (\hat{f}(x_0))}]^2$ :  $\hat{f}(x_0)$のバイアスの二乗 $E[\hat{f}(x_0) - f(x_0)]$
+    \item データにもともと含まれる$\varepsilon$の分散
+  \end{itemize}
 \end{itembox}
 このバイアスバリアンストレードオフはよく出てくるので、モデルやモデル内でのパラメータを変えた時、バリアンスやバイアスがどう変化するのか、正しく答えられるようにしましょう。
 
 \subsection{ベイズ分類器}
-条件付き確率が最大になるようなクラスにあるデータ$X_i$を分類する方法です。ベイズ最適決定とも呼ばれます。
+ある入力Xが条件付き確率が最大になるようなクラスにあるデータ$X_i$を分類する方法です。ベイズ最適決定とも呼ばれます。
 \begin{itembox}[l]{ベイズ分類器}
   以下の条件つき確率が最大になるクラスを選び、期待誤り率を最小になることを目指した。
   $$P(Y = j|X = x_0)$$
@@ -715,7 +724,7 @@ $k$回の学習を通して全ての入力データをみることができま�
 % \begin{itembox}[l]{Bias-variance trade-off}
   \begin{itemize}
     \item K分割交差検証の場合、学習に使えるデータの数はLOO比べ少なくなるので、バイアスが大きくなる可能性がある。
-    \item LOO交差検証には学習に使うデータが毎回ほとんど同じなので出力間に強い相関があり、バイアスが大きい。
+    \item LOO交差検証には学習に使うデータが毎回ほとんど同じなので出力間に強い相関があり、バリアンスが大きい。
   \end{itemize}
 
 % \end{itembox}
@@ -1214,12 +1223,21 @@ $$d(x_i, x_j) = \sqrt{\sum_{k=1}^p (x_{ik} - x_{jk})^2}$$
   \item 階層的クラスタリング
 \end{itemize}
 \subsubsection{$K$-Meansクラスタリング}
-最初の方でやったK最近傍法は覚えてるでしょうか。ちょっと似たような名前ですがやっていることは全然違います。$K$-Meansクラスタリング(K-平均法)は
-\begin{itembox}[l]{$K$-Meansクラスタリング}
-  よくわからないんだが。
+$K$-Meansクラスタリング(K-平均法)  (あんまりちゃんと聞いてなくてスライドの定義式にある「インデックスの集合」がよくわかりませんごめんなさい…多分テスト前に補足します…は各クラス内の広がりが最小になるように分けることを目指しており、以下のような手順で予測を行います。
+\begin{itembox}[l]{$K$-Meansクラスタリングの手順}
+  \begin{enumerate}
+   \item 各事例の所属するクラスタをランダムに決める
+   \item ランダムに決められた各クラスタの重心を計算する。
+   $$\overline{x_k} = \frac{1}{|C_k|}\sum_{i \in C_k}{x_i}$$
+   \item 各事例の所属するクラスタを、重心が最も近いクラスタとする
+   \item 収束するまで2及び3を繰り返します。
+  \end{enumerate}
 \end{itembox}
+簡単に言うと、まずランダムに入力事例をいくつかのクラスタに分けた後、このランダムなクラスタの重心を求めます。次に、それぞれの点を元々のランダムなクラスタ分けから、自分に重心が最も近いクラスタに振り分け直します。そうするとさっきとは重心が変わってしまうので、\
+この新しいクラスタ分けで重心を計算し直します。そしてまたそれぞれの事例のクラスタを最も重心が近いクラスタ$C_i$にして…をクラスタ内の点同士の距離の総和の平均が最小になるまで何度も繰り返します。
 
-$K$-Meansクラスタリングにはいくつか注意点があります。この最適化アルゴリズムの収束先は初期値に依存するので最適解に近い解を得るためには何回か初期値を変えて実行する必要があります。\
+$K$-Meansクラスタリングには注意点があります。Kmeansクラスタリングで得られる結果は局所最適解であり、上の手順からもわかるように最適化アルゴリズムの収束先は初期解(つまり最初にランダムに行ったクラスタリング)に依存します。そこで初期解があまりよくなかった場合精度が十分に出ない恐れ\
+$\footnote{ソフトウェアIIでやった巡回セールスマン問題とかも、ランダムに初期値を形成する場合はその初期値によって結構大きく結果が変わってきましたよね}$があるため、最適解に近い解を得るためには何回か初期値を変えて実行する必要があります。\
 解は何回か変えて実行した者のうち、最も評価値の高かったクラスタリングを選択します。
 
 \subsubsection{階層的クラスタリング}
@@ -1260,27 +1278,181 @@ $K$-Meansクラスタリングにはいくつか注意点があります。こ�
 \end{description}
 先生曰く実際によく使われるのは完全リンクか平均リンクらしいですが、単一リンクだと計算を早く済ませることができます。
 
-% 左の例は切った下で二つに分かれているので二つのクラスタに、右のは三つの枝で分かれているので三つのクラスタになっている。
-% クラスタとクラスタの間の近さをどう判断するか。
-% 完全リンク (75)と(8)ー＞遠いのは５と8ではなく7と8。完全リンクの結果はバタンすが良い。single linkagは計算が早い。
-% 基本はAverageかComplete
+\section{参考資料}
+授業で「参考」とされた内容や数式の計算過程等をまとめてあります。
 
+\subsection{予測誤差の大きさ（第3講）}
+予測結果$\hat{Y}$と実際のラベル$Y$の二乗誤差の大きさの期待値から予測誤差を求めると、予測誤差に削減可能な誤差と削減不可能な誤差があることがわかります。
+統計的機械学習において、$Y = f(X) + \epsilon$で表されるため、
+\begin{equation*}
+\begin{split}
+E[(Y - \hat{Y})^2]&=E[((f(X) + \varepsilon) - \hat{f}(X))^2] \\
+&=E[f(X)^2 + \varepsilon ^2 + \hat{f}(X)^2 + 2 \varepsilon f(X) - 2\varepsilon \hat{f}(X) + 2f(X)\hat{f}(X)] \\
+&=E[(f(X) - \hat{f}(X))^2 + 2(f(X) - \hat{f}(X)\varepsilon) + \varepsilon^2] \\
+&=E[(f(X) - \hat{f}(X))^2] + 2E[(f(X) - \hat{f}(X)\varepsilon] + E[\varepsilon^2] \\
+\end{split}
+\end{equation*}
+3行目から4行目あたりの変形については$E[X + Y] = E[X] + E[Y], E[aX] = aE[X]$を用いた。ここで$f(X),\ \hat{f}(X))^2$はいずれも決定項（確率変数ではない）ので、期待値操作とは無関係になる。そのため$E[(Y - \hat{Y})^2]$は
+\begin{equation*}
+\begin{split}
+E[(Y - \hat{Y})^2]&=(f(X) - \hat{f}(X))^2E[1] + 2f(X)E[\varepsilon] - 2\hat{f}(X)\varepsilon E[\epsilon] + Var(\varepsilon) \\
+&=(f(X) - \hat{f}(X))^2 + Var(\varepsilon)
+\end{split}
+\end{equation*}
+となり、第1項は学習したモデル$\hat{f}(X)$による予測結果と実際の関数$f(X)$の値のずれを示しており、削減可能な誤差ですが、第2項は元々のデータに含まれる統計的な誤差$\varepsilon$によって生じており、\
+削減のできない誤差になります。
+% \subsection{Bias-variance trade-offの導出（第4講）}
+% 上の予測誤差の導出と同じ感じでBias-Variance Trace-offについても計算過程を追ってみます。
+% \begin{equation*}
+% \begin{split}
+% E[(y_0 - \hat{f}(x_0))^2] &= E[y_0 ^2 + \hat{f}(x_0)^2 - 2y_0\hat{f}(x_0)]\\
+% &=E[y_0 ^2] + E[\hat{f}(x_0)] - E[2y_0\hat{f}(x_0)]
+% \end{split}
+% \end{equation*}
+% ここで基礎統計の復習になるの
+\subsection{線形単回帰のパラメータの推定法(第4講)}
+線形単回帰の{\rm RSS}を最小にする$\hat{\beta}_0, \hat{\beta}_1$は、ぞれぞれで{\rm RSS}を偏微分し、偏微分した結果を0にする$\hat{\beta}_0, \hat{\beta}_1$を\
+連立方程式にとけば求めることができます。
+$${\rm {\rm RSS}} = (y_1 - \hat{\beta_0} - \hat{\beta_1}x_1)^2 +  (y_2 - \hat{\beta_0} - \hat{\beta_1}x_2)^2 \ldots  (y_n - \hat{\beta_0} - \hat{\beta_1}x_n)^2$$
+% (a + b + c)^2 = a^2 + b^2 + c^2 + 2ab + 2bc + 2ca
+$$(y_1 - \hat{\beta_0} - \hat{\beta_1}x_1)^2 = y_1^2 + \hat{\beta_0}^2 + \hat{\beta_1}^2x_1^2 - 2y_1\hat{\beta_0} + 2\hat{\beta_0}\hat{\beta_1}x_1 -2\hat{\beta_1}x_1y_1より$$
+% $$\frac{\partial {\rm RSS}}{\partial \hat{\beta_0}} = 0より$$
+% $$\sum_{i=1}^n y_i - \beta_1\sum_{i=1}^n x_i - \beta_0 n = 0$$
+% $$\frac{\partial {\rm RSS}}{\partial \hat{\beta_1}} = 0より$$
+\begin{numcases}
+  {}
+  \frac{\partial {\rm RSS}}{\partial \hat{\beta_0}} = 0 \iff \sum_{i=1}^n y_i - \beta_1\sum_{i=1}^n x_i - \beta_0 n = 0  & \\
+  \frac{\partial {\rm RSS}}{\partial \hat{\beta_1}} = 0 \iff \sum_{i=1}^n x_iy_i - \beta_1\sum_{i=1}^n x_i^2 - \beta_0 \sum_{i=1}^n x_i = 0  &
+\end{numcases}
+式(3)より
+\begin{equation}
+  \beta_0 = \frac{1}{n}\sum_{i=1}^n y_i - \beta_1\sum_{i=1^n}x_i
+\end{equation}
+ここで
+\begin{equation}
+  \overline{x} = \frac{1}{n}\sum_{i=1}^n x_i, \overline{y} = \frac{1}{n}\sum_{i=1}^n y_i
+\end{equation}
+式(5)(6)を式(4)に代入し、$\beta_1$について解くと、
+\begin{equation*}
+  \begin{split}
+    \beta_1 &=  \frac{\sum_{i=1}^n x_iy_i - \frac{1}{n}(\sum_{i=1}^n y_i\sum_{i=1}^n x_i)}{\sum_{i=1}^n x_i^2 - \frac{\sum_{i=1}^n x_i^2}{n}} \\
+    &= \frac{\sum_{i=1}^n(x - \overline{x})(y - \overline{y})}{\sum_{i=1}^n (x - \overline{x})^2}
+  \end{split}
+\end{equation*}
+また式(5)より
+$$\beta_0 = \overline{y} - \beta_1\overline{x}$$
+\subsection{{\rm RSS}の性質の導出(第4講)}
+式(5)について、全て一つのシグマでくくると
+\begin{equation}
+  \sum_{i=1}^n y_i - \beta_1x_i - \beta_0 = \sum_{i=1}^n e_i = 0
+\end{equation}
+よって、{\rm RSS}に関する一つ目の性質が示された。
+また同様に式(6)より
+\begin{equation}
+  \sum_{i=1}^n x_iy_i - \beta_1x_i^2 - \beta_0 x_i = \sum_{i=1}^n x_i (y_i - \beta_1x_i - \beta_0)  =  \sum_{i=1}^n e_ix_i = 0
+\end{equation}
+よって二つ目の性質も{\rm RSS}からパラメータを推定する際に用いた式より導くことができる。
 
-% \subsubsection{主成分分析の幾何学的理解}
-% 今は$\phi$を求めている。結局$\phi$と$x$の内積を求めている。$\phi$と$x$の内積を全部かけたものとは$z_{i1}=|x_i|{\rm cos}\theta_i$。\
-% これをベクトル空間で考えると、この$z_{i1}$は正射影ベクトルの長さとなり、以上の最適化問題はこの正射影ベクトルの長さの2乗$z_{i1}^2$の総和を最大にする$\phi_1$を選べばいいことがわかります。
-% \begin{figure}
-%   \begin{center}
-%     \includegraphics[width=10cm]{img/syusei.png}
-%     \caption{主成分分析の幾何学的解釈}
-%   \end{center}
-% \end{figure}
+\subsection{標準誤差の求め方及び標準偏差(第4講)}
+母平均の信頼区間$ = 標本平均 \pm t \times 標本標準偏差 \div \sqrt{標本数}$です。
+$$標準誤差 SE = \frac{標準偏差 SD}{\sqrt{標本数 N}}$$より、パラメータ$\beta_0, \beta_1$の信頼区間はそれぞれ
+$$\hat{\beta}_0 \pm t{\rm SE}(\hat{\beta}_0), \hat{\beta}_1 \pm t{\rm SE}(\hat{\beta}_1)$$となる。
+tの値はt分布表からtの値を求めることができる。信頼区間の当たる確率、すなわち95$\%$信頼区間であれば95$\%$を信頼係数といい、\
+標本数から1を引いた数を自由度と呼び、t分布表ではこの自由度と信頼係数よりtの値を求めることができます。\
+例えば標本数が10で95$\%$信頼区間を求めたい時、以下の表よりtは自由度が9、信頼係数が95$\%$の2.262ですことがわかる。\
+標本数が大きくなるとこのtの値はほぼ正規分布の値と変わらず2前後になるため、線形単回帰のパラメータの信頼区間の推定において近似的に$t=2$とすることができる。
+（ザックりな説明ですみません… https://blog.apar.jp/data-analysis/4632/)
+\begin{figure}
+  \begin{center}
+  \includegraphics[width=10cm]{img/t_bunpu.png}
+  \caption{t分布表の見方}
+\end{center}
+\end{figure}
 
+\subsection{縮小推定の手計算（第10講）}
+$n = p, \beta_0 = 0$
+\[
+  X = \left(
+    \begin{array}{cccc}
+      1 & 0 & \ldots & 0 \\
+      0 & 1 & \ldots & 0 \\
+      \vdots & \vdots & \ddots & \vdots \\
+      0 & 0 & \ldots & 1
+    \end{array}
+  \right)
+\]
+という問題に対して、パラメータ推定及び縮小推定（リッジ推定、Lasso推定）を行う。
 
+まず、最小二乗法でパラメータを推定する際には、
+最小二乗法を用いる場合、その目的関数は以下のようになる。目的関数を最小化する$\beta_i$は目的関数の微分が0になる時となるため、
+\begin{equation}
+  L = \sum_{j = 1}^p(y_i - \beta_j)^2
+\end{equation}
+$$\frac{\partial L}{\partial \beta_i} = \frac{\partial}{\partial \beta_i}\sum_{j = 1}^p(y_i - \beta_j)^2 = \frac{\partial}{\partial \beta_i}(y_i^2 - 2y_i\beta_i + \beta_i^2) = -2(y_i - \beta_i)$$
+$L$に対して$\beta_i$の微分を取る時、$i$番目以外のパラメータ$\beta$は無視してよいので、結果的に$L$を最小にする$\beta_i$の値は以下のようになる。
 
+\begin{equation}
+  \beta_i = y_i
+\end{equation}
 
+リッジ回帰においては目的関数が以下(5)で表現されるため、同様に$\beta_i$で微分をし、Lを最小化する$\beta_i$を求めると以下の(6)のようになる。
+\begin{equation}
+L = \sum_{i=1}^n \left(y_i - \beta_i \right)^2 + \lambda \sum_{j=1}^p \beta_j^2
+\end{equation}
 
+$$\frac{\partial L}{\partial \beta_i} = \frac{\partial}{\partial \beta_i}\left(\sum_{j = 1}^p(y_i - \beta_j)^2 +\lambda \sum_{j=1}^p \beta_j^2\right) + 2\lambda\beta_i = \frac{\partial}{\partial \beta_i}(y_i^2 - 2y_i\beta_i + \beta_i^2) = 2(1 + \beta_i) - 2y_i $$
+\begin{equation}
+  \hat{\beta_i^R} = \frac{y_i}{1 + \lambda}
+\end{equation}
+(6)より、$\lambda = 0$ならば目的関数を最小化する$\beta_i$がパラメータ推定の結果求められた(5)と一致することがわかり、\
+$\lambda = 0$の縮小推定の結果はパラメータ推定により求められる値と一致することが確認できる。
 
+Lasso回帰においては目的関数が以下(7)で表現される。Lasso回帰においては正則化項が絶対値符号を含むため、正か負かで場合わけをする必要があります。ただやることはリッジと同じなので、$|\beta_j|$が正か負かで場合分けして各自計算してみてください。
+\begin{equation}
+  L = \sum_{i=1}^n \left(y_i - \beta_i \right)^2 + \lambda \sum_{j=1}^p |\beta_j|
+\end{equation}
+
+\subsection{リッジ回帰、Lasso回帰を不等式制約付きの最適化問題として捉える}
+リッジ回帰、Lasso回帰は以下のような不等式条件付きの最適化問題として捉えることができ、この見方をするとなぜLasso回帰においてパラメータが0に収束しやすいのか\
+理解がしやすくなります。
+
+\begin{itembox}[l]{不等式条件つき最適化問題としての等式化}
+  \begin{description}
+    \item[リッジ回帰]\mbox{}\\
+    \begin{equation*}
+      \begin{aligned}
+      & \underset{\beta}{\text{minimize}}
+      & &\displaystyle{\sum_{i=1}^n \left(y_i - \beta_0 - \sum_{j=1}^p \beta_jx_{ij}\right)^2 }  \\
+      & \text{subject to}
+      & & \lambda \sum_{j=1}^p \beta_j^2 \leq s
+      \end{aligned}
+    \end{equation*}
+    \item[Lasso回帰]\mbox{}\\
+      \begin{equation*}
+        \begin{aligned}
+        & \underset{\beta}{\text{minimize}}
+        & &\displaystyle{\sum_{i=1}^n \left(y_i - \beta_0 - \sum_{j=1}^p \beta_jx_{ij}\right)^2 }  \\
+        & \text{subject to}
+        & & \lambda \sum_{j=1}^p |\beta_j| \leq s
+        \end{aligned}
+      \end{equation*}
+  \end{description}
+\end{itembox}
+% \begin{equation}
+%   \frac{\partial L}{\partial \beta_i} = \frac{\partial}{\partial \beta_i}\left(\sum_{j = 1}^p(y_i - \beta_j)^2 +\lambda \sum_{j=1}^p \beta_j^2\right) + 2\lambda\beta_i = \frac{\partial}{\partial \beta_i}(y_i^2 - 2y_i\beta_i + \beta_i^2) = 2(1 + \beta_i) - 2y_i
+%
+% \end{equation}
+ちょっと眠いので省略なのですが、上の最適化問題の制約条件からわかるように、Lassoについては制約条件を満たす領域が$\beta_1, \beta_2$平面上の四角形になり、頂点はそれぞれ$(-s, 0),\ (s,0),\ (0, -s),\ (0, s)$の四点にきます。\
+一方、リッジ回帰の場合、制約条件によって許容される$\beta_1, \beta_2$の領域は、半径が$\sqrt{s}$以下の円となります。\
+結果として、Lasso回帰においてはRSS(最小二乗誤差、$\sum_{i=1}^n \left(y_i - \beta_0 - \sum_{j=1}^p \beta_jx_{ij}\right)^2 $)の等高線が制約条件を満たす四角形の頂点に接する可能性もあり、\
+この場合、例えばRSSの等高線が$(0,s)$に接していた時、パラメータ$\beta_1$については0となるためこのパラメータ$\beta_1$が消失することがわかります。一方リッジについては、例えRSSの等高線が制約境界上にあったとしても、どちらかのパラメータが0になることは発生しえないことがわかります（ほんとか？）。\
+これについてはスライドの図がわかりやすかったのでそのまま貼っておきます。
+\begin{figure}
+  \begin{center}
+  \includegraphics[width=13cm]{img/sikaku.png}
+  \caption{最適化問題としてリッジとLasso回帰をといた場合}
+\end{center}
+\end{figure}
 
 
 \end{document}
